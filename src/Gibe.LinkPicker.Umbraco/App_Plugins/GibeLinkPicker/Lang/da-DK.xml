@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<language>
+	<area alias="Gibe.LinkPicker">
+		<key alias="enterHashTarget">Indtast et hash target</key>
+		<key alias="hashTarget">Hash target</key>
+		<key alias="enterClassName">Indtast et class name</key>
+		<key alias="className">Class name</key>
+	</area>
+</language>
