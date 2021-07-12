@@ -1,8 +1,6 @@
-[![Build status](https://ci.appveyor.com/api/projects/status/inglha3jbuojwsmt/branch/master?svg=true)](https://ci.appveyor.com/project/karltynan/umbraco-link-picker)
-
 <h2>Umbraco Link Picker</h2>
 
-A simple internal or external link picker property editor for **Umbraco 7.x**
+A simple internal or external link picker property editor for **Umbraco 8.x**
 
 <h3>Quick links</h3>
 
@@ -17,7 +15,7 @@ A simple internal or external link picker property editor for **Umbraco 7.x**
 
 <h3>About the package</h4>
 
-This package is for **Umbraco 7.x**
+This package is for **Umbraco 8.x**
 
 <h4>Features</h4>
 <ul>
@@ -33,7 +31,7 @@ Download and install the package from our.umbraco.org: <a href="https://our.umbr
 
 <h4>NuGet</h4>
 
-<pre>PM > Install-Package UmbracoLinkPicker</pre>
+<pre>PM > Install-Package UmbracoLinkPicker.v8</pre>
 
 Create a new DataType in the Developer tab in your Umbraco project, referencing "Link Picker" (alias: "Gibe.LinkPicker"). Add the new DataType to your Document Types to use the Link Picker
 
