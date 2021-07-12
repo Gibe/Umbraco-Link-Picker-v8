@@ -1,26 +1,15 @@
 using System;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Umbraco.Cms.Core;
-using Umbraco.Cms.Core.Models.PublishedContent;
-using Umbraco.Cms.Core.PropertyEditors;
-using Umbraco.Cms.Core.PublishedCache;
-using Umbraco.Cms.Core.Web;
-using Umbraco.Extensions;
+using Umbraco.Core;
+using Umbraco.Core.Logging;
+using Umbraco.Core.Models.PublishedContent;
+using Umbraco.Core.PropertyEditors;
+using Umbraco.Web;
 
 namespace Gibe.LinkPicker.PropertyConverters
 {
 	public class LinkPickerValueConverter : PropertyValueConverterBase
 	{
-		private readonly IUmbracoContextAccessor _contextAccessor;
-		private readonly ILogger<LinkPickerValueConverter> _logger;
-
-		public LinkPickerValueConverter(IUmbracoContextAccessor contextAccessor, ILogger<LinkPickerValueConverter> logger)
-		{
-			_contextAccessor = contextAccessor;
-			_logger = logger;
-		}
-
 		/// <summary>
 		/// Method to see if the current property type is of type
 		/// LinkPicker editor.
@@ -50,35 +39,31 @@ namespace Gibe.LinkPicker.PropertyConverters
 		public override object ConvertSourceToIntermediate(IPublishedElement owner, IPublishedPropertyType propertyType, object source, bool preview)
 		{
 			if (source == null)
-			{
 				return null;
-			}
-
+			
 			var sourceString = Convert.ToString(source);
 
-			using (var context = _contextAccessor.UmbracoContext)
+			var umbracoHelper = Umbraco.Web.Composing.Current.UmbracoHelper;
+
+			try
 			{
-				try
+				var linkPicker = JsonConvert.DeserializeObject<Models.LinkPicker>(sourceString);
+				if (linkPicker.Id > 0 || !string.IsNullOrWhiteSpace(linkPicker.Udi))
 				{
-					var linkPicker = JsonConvert.DeserializeObject<Models.LinkPicker>(sourceString);
-					if (linkPicker.Id > 0 || !string.IsNullOrWhiteSpace(linkPicker.Udi))
-					{
-						var content =
+					var content =
 							linkPicker.Udi != null
-								? context.Content.GetById(UdiParser.Parse(linkPicker.Udi))
-								: context.Content.GetById(linkPicker.Id);
+									? umbracoHelper.Content(Udi.Parse(linkPicker.Udi))
+									: umbracoHelper.Content(linkPicker.Id);
 
-						linkPicker.Url = content?.Url() ?? linkPicker.Url;
-					}
-
-					return linkPicker;
+					linkPicker.Url = content?.Url ?? linkPicker.Url;
 				}
-				catch (Exception ex)
-				{
 
-					_logger.LogError(ex.Message, ex);
-					return null;
-				}
+				return linkPicker;
+			}
+			catch (Exception ex)
+			{
+				Umbraco.Core.Composing.Current.Logger.Error<LinkPickerValueConverter>(ex.Message, ex);
+				return null;
 			}
 		}
 	}
