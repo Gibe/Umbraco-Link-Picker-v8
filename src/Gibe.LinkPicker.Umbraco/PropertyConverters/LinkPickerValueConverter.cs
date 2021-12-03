@@ -3,18 +3,18 @@ using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.PropertyEditors;
 using Umbraco.Cms.Core.PublishedCache;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Umbraco.Extensions;
+using Microsoft.Extensions.Logging;
 
 namespace Gibe.LinkPicker.PropertyConverters
 {
 	public class LinkPickerValueConverter : PropertyValueConverterBase
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<LinkPickerValueConverter> _logger;
 		private readonly IPublishedSnapshotAccessor _publishedSnapshotAccessor;
 
-		public LinkPickerValueConverter(ILogger logger, IPublishedSnapshotAccessor publishedSnapshotAccessor)
+		public LinkPickerValueConverter(ILogger<LinkPickerValueConverter> logger, IPublishedSnapshotAccessor publishedSnapshotAccessor)
         {
             _logger = logger;
             _publishedSnapshotAccessor = publishedSnapshotAccessor;
