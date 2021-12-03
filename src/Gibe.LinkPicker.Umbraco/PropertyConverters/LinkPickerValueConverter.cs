@@ -1,15 +1,25 @@
 using System;
+using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Models.PublishedContent;
+using Umbraco.Cms.Core.PropertyEditors;
+using Umbraco.Cms.Core.PublishedCache;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Umbraco.Core;
-using Umbraco.Core.Logging;
-using Umbraco.Core.Models.PublishedContent;
-using Umbraco.Core.PropertyEditors;
-using Umbraco.Web;
+using Umbraco.Extensions;
 
 namespace Gibe.LinkPicker.PropertyConverters
 {
 	public class LinkPickerValueConverter : PropertyValueConverterBase
-	{
+    {
+        private readonly ILogger _logger;
+		private readonly IPublishedSnapshotAccessor _publishedSnapshotAccessor;
+
+		public LinkPickerValueConverter(ILogger logger, IPublishedSnapshotAccessor publishedSnapshotAccessor)
+        {
+            _logger = logger;
+            _publishedSnapshotAccessor = publishedSnapshotAccessor;
+        }
+
 		/// <summary>
 		/// Method to see if the current property type is of type
 		/// LinkPicker editor.
@@ -19,7 +29,7 @@ namespace Gibe.LinkPicker.PropertyConverters
 		public override bool IsConverter(IPublishedPropertyType propertyType)
 				=> propertyType.EditorAlias.InvariantEquals("Gibe.LinkPicker");
 
-		/// <inheritdoc />
+        /// <inheritdoc />
 		public override Type GetPropertyValueType(IPublishedPropertyType propertyType)
 				=> typeof(Models.LinkPicker);
 
@@ -43,28 +53,38 @@ namespace Gibe.LinkPicker.PropertyConverters
 			
 			var sourceString = Convert.ToString(source);
 
-			var umbracoHelper = Umbraco.Web.Composing.Current.UmbracoHelper;
-
+			
 			try
 			{
 				var linkPicker = JsonConvert.DeserializeObject<Models.LinkPicker>(sourceString);
-				if (linkPicker.Id > 0 || !string.IsNullOrWhiteSpace(linkPicker.Udi))
-				{
-					var content =
-							linkPicker.Udi != null
-									? umbracoHelper.Content(Udi.Parse(linkPicker.Udi))
-									: umbracoHelper.Content(linkPicker.Id);
-
-					linkPicker.Url = content?.Url ?? linkPicker.Url;
+				if (linkPicker != null && (linkPicker.Id > 0 || !string.IsNullOrWhiteSpace(linkPicker.Udi)))
+                {
+                    if (linkPicker.Udi != null)
+                    {
+                        var udi = linkPicker.Udi.TryConvertTo<Udi>();
+                        if (udi.Success)
+                        {
+                            var content = _publishedSnapshotAccessor.GetRequiredPublishedSnapshot().Content.GetById(udi.Result);
+                            linkPicker.Url = content?.Url() ?? linkPicker.Url;
+						}
+                    }
+                    else
+                    {
+                        var content = _publishedSnapshotAccessor.GetRequiredPublishedSnapshot().Content
+                            .GetById(linkPicker.Id);
+                        linkPicker.Url = content?.Url() ?? linkPicker.Url;
+					}
+                   
 				}
 
 				return linkPicker;
 			}
 			catch (Exception ex)
 			{
-				Umbraco.Core.Composing.Current.Logger.Error<LinkPickerValueConverter>(ex.Message, ex);
+				_logger.LogError(ex.Message, ex);
 				return null;
 			}
 		}
-	}
+
+    }
 }
